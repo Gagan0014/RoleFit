@@ -227,10 +227,18 @@ function App() {
           <a href="#about">About</a>
         </nav>
 
-        <div className="nav-actions">
-          <button className="sign-in">Sign In</button>
-          <button className="get-started">Get Started</button>
-        </div>
+      <div className="nav-actions">
+        <button
+          className="get-started"
+          onClick={() => {
+            document
+              .getElementById("analyze")
+              ?.scrollIntoView({ behavior: "smooth" });
+          }}
+        >
+        Get Started
+        </button>
+      </div>
       </header>
 
       <main>
