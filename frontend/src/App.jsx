@@ -1,14 +1,39 @@
 import { useState } from "react";
 import "./App.css";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+const fetchWithTimeout = async (
+  url,
+  options = {},
+  timeout = 60000
+) => {
+  const controller = new AbortController();
+
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 function App() {
   const [file, setFile] = useState(null);
   const [jobDescription, setJobDescription] = useState("");
   const [resumeText, setResumeText] = useState("");
   const [analysis, setAnalysis] = useState(null);
   const [improvement, setImprovement] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [improving, setImproving] = useState(false);
+
   const [error, setError] = useState("");
   const [improvementError, setImprovementError] = useState("");
 
@@ -53,31 +78,37 @@ function App() {
 
     setLoading(true);
     setError("");
+    setAnalysis(null);
     setImprovement(null);
     setImprovementError("");
 
     try {
+      // Step 1: Upload resume
       const formData = new FormData();
       formData.append("resume", file);
 
-      const uploadResponse = await fetch(
-        "http://localhost:5000/api/resume/upload",
+      const uploadResponse = await fetchWithTimeout(
+        `${API_URL}/api/resume/upload`,
         {
           method: "POST",
           body: formData,
-        }
+        },
+        30000
       );
 
       const uploadData = await uploadResponse.json();
 
       if (!uploadResponse.ok) {
-        throw new Error(uploadData.message || "Resume upload failed.");
+        throw new Error(
+          uploadData.message || "Resume upload failed."
+        );
       }
 
       setResumeText(uploadData.text);
 
-      const analysisResponse = await fetch(
-        "http://localhost:5000/api/ai/analyze",
+      // Step 2: Analyze resume
+      const analysisResponse = await fetchWithTimeout(
+        `${API_URL}/api/ai/analyze`,
         {
           method: "POST",
           headers: {
@@ -87,7 +118,8 @@ function App() {
             resumeText: uploadData.text,
             jobDescription,
           }),
-        }
+        },
+        60000
       );
 
       const analysisData = await analysisResponse.json();
@@ -100,8 +132,17 @@ function App() {
 
       setAnalysis(analysisData.analysis);
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Something went wrong.");
+      console.error("Analysis error:", err);
+
+      if (err.name === "AbortError") {
+        setError(
+          "The analysis took too long. Please try again."
+        );
+      } else {
+        setError(
+          err.message || "Something went wrong."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -117,10 +158,11 @@ function App() {
 
     setImproving(true);
     setImprovementError("");
+    setImprovement(null);
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/ai/improve",
+      const response = await fetchWithTimeout(
+        `${API_URL}/api/ai/improve`,
         {
           method: "POST",
           headers: {
@@ -130,7 +172,8 @@ function App() {
             resumeText,
             jobDescription,
           }),
-        }
+        },
+        60000
       );
 
       const data = await response.json();
@@ -143,10 +186,18 @@ function App() {
 
       setImprovement(data.improvement);
     } catch (err) {
-      console.error(err);
-      setImprovementError(
-        err.message || "Something went wrong while improving the resume."
-      );
+      console.error("Improvement error:", err);
+
+      if (err.name === "AbortError") {
+        setImprovementError(
+          "The improvement request took too long. Please try again."
+        );
+      } else {
+        setImprovementError(
+          err.message ||
+            "Something went wrong while improving the resume."
+        );
+      }
     } finally {
       setImproving(false);
     }
@@ -183,6 +234,7 @@ function App() {
       </header>
 
       <main>
+        {/* HERO */}
         <section className="hero" id="analyze">
           <div className="hero-glow glow-one"></div>
           <div className="hero-glow glow-two"></div>
@@ -199,12 +251,16 @@ function App() {
               </h1>
 
               <p className="hero-description">
-                Compare your resume with a target job and get a clear view
-                of your strengths, skill gaps, ATS readiness, and overall
-                role fit.
+                Compare your resume with a target job and get a clear
+                view of your strengths, skill gaps, ATS readiness, and
+                overall role fit.
               </p>
 
-              <label className={`upload-card ${file ? "uploaded" : ""}`}>
+              <label
+                className={`upload-card ${
+                  file ? "uploaded" : ""
+                }`}
+              >
                 <input
                   type="file"
                   accept=".pdf"
@@ -213,14 +269,18 @@ function App() {
 
                 {file ? (
                   <>
-                    <div className="upload-file-icon">PDF</div>
+                    <div className="upload-file-icon">
+                      PDF
+                    </div>
 
                     <div className="upload-content">
                       <strong>{file.name}</strong>
                       <span>Ready to analyze · PDF</span>
                     </div>
 
-                    <div className="upload-change">Change</div>
+                    <div className="upload-change">
+                      Change
+                    </div>
                   </>
                 ) : (
                   <>
@@ -231,20 +291,26 @@ function App() {
                         Drop your resume here or choose a file
                       </strong>
 
-                      <span>PDF only · Maximum 5 MB</span>
+                      <span>
+                        PDF only · Maximum 5 MB
+                      </span>
                     </div>
 
-                    <div className="upload-button">Choose file</div>
+                    <div className="upload-button">
+                      Choose file
+                    </div>
                   </>
                 )}
               </label>
 
               <p className="privacy-note">
                 <span>▣</span>
-                Your resume stays private and is not used to train the model.
+                Your resume stays private and is not used to train
+                the model.
               </p>
             </div>
 
+            {/* PREVIEW */}
             <div className="preview-wrap">
               <div className="preview-window">
                 <div className="preview-topbar">
@@ -261,10 +327,15 @@ function App() {
                 <div className="preview-body">
                   <aside className="preview-sidebar">
                     <div className="preview-score-card">
-                      <span className="mini-label">ROLE FIT</span>
+                      <span className="mini-label">
+                        ROLE FIT
+                      </span>
 
                       <div className="mini-score">
-                        <strong>{analysis?.roleFitScore ?? 84}</strong>
+                        <strong>
+                          {analysis?.roleFitScore ?? 84}
+                        </strong>
+
                         <span>/100</span>
                       </div>
 
@@ -272,7 +343,10 @@ function App() {
                         <div
                           style={{
                             width: `${Math.min(
-                              Math.max(analysis?.roleFitScore ?? 84, 0),
+                              Math.max(
+                                analysis?.roleFitScore ?? 84,
+                                0
+                              ),
                               100
                             )}%`,
                           }}
@@ -280,15 +354,22 @@ function App() {
                       </div>
 
                       <span className="mini-caption">
-                        {analysis ? "Your result" : "Strong match"}
+                        {analysis
+                          ? "Your result"
+                          : "Strong match"}
                       </span>
                     </div>
 
                     <div className="preview-score-card">
-                      <span className="mini-label">ATS SCORE</span>
+                      <span className="mini-label">
+                        ATS SCORE
+                      </span>
 
                       <div className="mini-score">
-                        <strong>{analysis?.atsScore ?? 78}</strong>
+                        <strong>
+                          {analysis?.atsScore ?? 78}
+                        </strong>
+
                         <span>/100</span>
                       </div>
 
@@ -297,7 +378,10 @@ function App() {
                           className="ats-meter-fill"
                           style={{
                             width: `${Math.min(
-                              Math.max(analysis?.atsScore ?? 78, 0),
+                              Math.max(
+                                analysis?.atsScore ?? 78,
+                                0
+                              ),
                               100
                             )}%`,
                           }}
@@ -310,7 +394,9 @@ function App() {
                     </div>
 
                     <div className="preview-list">
-                      <span className="mini-label">KEY SIGNALS</span>
+                      <span className="mini-label">
+                        KEY SIGNALS
+                      </span>
 
                       <div className="preview-list-item positive">
                         <span>✓</span>
@@ -347,6 +433,7 @@ function App() {
                     <div className="preview-box">
                       <div className="preview-box-header">
                         <span>SKILL MATCH</span>
+
                         <strong>
                           {analysis
                             ? `${analysis.matchedSkills.length} matched`
@@ -356,13 +443,19 @@ function App() {
 
                       <div className="preview-tags">
                         {(
-                          analysis?.matchedSkills?.slice(0, 4) || [
+                          analysis?.matchedSkills?.slice(
+                            0,
+                            4
+                          ) || [
                             "React",
                             "Node.js",
                             "MongoDB",
                           ]
                         ).map((skill, index) => (
-                          <span className="preview-tag" key={index}>
+                          <span
+                            className="preview-tag"
+                            key={index}
+                          >
                             ✓ {skill}
                           </span>
                         ))}
@@ -382,10 +475,10 @@ function App() {
 
                       <div className="preview-tags">
                         {(
-                          analysis?.missingSkills?.slice(0, 3) || [
-                            "AWS",
-                            "Docker",
-                          ]
+                          analysis?.missingSkills?.slice(
+                            0,
+                            3
+                          ) || ["AWS", "Docker"]
                         ).map((skill, index) => (
                           <span
                             className="preview-tag missing"
@@ -403,9 +496,15 @@ function App() {
           </div>
         </section>
 
-        <section className="analyzer-section" id="how-it-works">
+        {/* JOB DESCRIPTION */}
+        <section
+          className="analyzer-section"
+          id="how-it-works"
+        >
           <div className="section-heading">
-            <p className="eyebrow">START ANALYZING</p>
+            <p className="eyebrow">
+              START ANALYZING
+            </p>
 
             <h2>
               Tell RoleFit what
@@ -414,16 +513,21 @@ function App() {
             </h2>
 
             <p>
-              Add the job description and let RoleFit compare it with your
-              resume.
+              Add the job description and let RoleFit compare it
+              with your resume.
             </p>
           </div>
 
           <div className="job-card">
             <div className="job-card-top">
               <div>
-                <span className="step-number">01</span>
-                <span className="step-label">TARGET ROLE</span>
+                <span className="step-number">
+                  01
+                </span>
+
+                <span className="step-label">
+                  TARGET ROLE
+                </span>
               </div>
 
               <span className="character-count">
@@ -448,7 +552,8 @@ Example:
 
             <div className="job-card-footer">
               <span className="helper-text">
-                A complete job description gives more accurate results.
+                A complete job description gives more accurate
+                results.
               </span>
 
               <button
@@ -456,20 +561,33 @@ Example:
                 onClick={handleAnalyze}
                 disabled={loading}
               >
-                {loading ? "Analyzing..." : "Analyze Role Fit"}
+                {loading
+                  ? "Analyzing..."
+                  : "Analyze Role Fit"}
+
                 <span>→</span>
               </button>
             </div>
 
-            {error && <div className="error-box">{error}</div>}
+            {error && (
+              <div className="error-box">
+                {error}
+              </div>
+            )}
           </div>
         </section>
 
+        {/* RESULTS */}
         {analysis && (
-          <section className="results-section" id="results">
+          <section
+            className="results-section"
+            id="results"
+          >
             <div className="results-heading">
               <div>
-                <p className="eyebrow">YOUR RESULT</p>
+                <p className="eyebrow">
+                  YOUR RESULT
+                </p>
 
                 <h2>RoleFit analysis</h2>
 
@@ -488,10 +606,15 @@ Example:
 
             <div className="score-overview">
               <div className="score-overview-card">
-                <span className="result-label">ROLE FIT</span>
+                <span className="result-label">
+                  ROLE FIT
+                </span>
 
                 <div className="big-score">
-                  <strong>{analysis.roleFitScore}</strong>
+                  <strong>
+                    {analysis.roleFitScore}
+                  </strong>
+
                   <span>/100</span>
                 </div>
 
@@ -499,21 +622,31 @@ Example:
                   <div
                     style={{
                       width: `${Math.min(
-                        Math.max(analysis.roleFitScore, 0),
+                        Math.max(
+                          analysis.roleFitScore,
+                          0
+                        ),
                         100
                       )}%`,
                     }}
                   />
                 </div>
 
-                <p>{analysis.roleAnalysis}</p>
+                <p>
+                  {analysis.roleAnalysis}
+                </p>
               </div>
 
               <div className="score-overview-card ats-card">
-                <span className="result-label">ATS SCORE</span>
+                <span className="result-label">
+                  ATS SCORE
+                </span>
 
                 <div className="big-score">
-                  <strong>{analysis.atsScore}</strong>
+                  <strong>
+                    {analysis.atsScore}
+                  </strong>
+
                   <span>/100</span>
                 </div>
 
@@ -521,14 +654,19 @@ Example:
                   <div
                     style={{
                       width: `${Math.min(
-                        Math.max(analysis.atsScore, 0),
+                        Math.max(
+                          analysis.atsScore,
+                          0
+                        ),
                         100
                       )}%`,
                     }}
                   />
                 </div>
 
-                <p>{analysis.atsAnalysis}</p>
+                <p>
+                  {analysis.atsAnalysis}
+                </p>
               </div>
             </div>
 
@@ -541,23 +679,35 @@ Example:
                     </span>
 
                     <div className="result-tags">
-                      {analysis.matchedSkills.map((skill, index) => (
-                        <span className="result-tag matched" key={index}>
-                          ✓ {skill}
-                        </span>
-                      ))}
+                      {analysis.matchedSkills.map(
+                        (skill, index) => (
+                          <span
+                            className="result-tag matched"
+                            key={index}
+                          >
+                            ✓ {skill}
+                          </span>
+                        )
+                      )}
                     </div>
                   </div>
 
                   <div className="result-panel">
-                    <span className="result-label">SKILL GAPS</span>
+                    <span className="result-label">
+                      SKILL GAPS
+                    </span>
 
                     <div className="result-tags">
-                      {analysis.missingSkills.map((skill, index) => (
-                        <span className="result-tag missing" key={index}>
-                          + {skill}
-                        </span>
-                      ))}
+                      {analysis.missingSkills.map(
+                        (skill, index) => (
+                          <span
+                            className="result-tag missing"
+                            key={index}
+                          >
+                            + {skill}
+                          </span>
+                        )
+                      )}
                     </div>
                   </div>
                 </div>
@@ -571,7 +721,10 @@ Example:
                     <div className="result-tags">
                       {analysis.atsKeywordsFound.map(
                         (keyword, index) => (
-                          <span className="result-tag matched" key={index}>
+                          <span
+                            className="result-tag matched"
+                            key={index}
+                          >
                             ✓ {keyword}
                           </span>
                         )
@@ -587,7 +740,10 @@ Example:
                     <div className="result-tags">
                       {analysis.atsKeywordsMissing.map(
                         (keyword, index) => (
-                          <span className="result-tag missing" key={index}>
+                          <span
+                            className="result-tag missing"
+                            key={index}
+                          >
                             + {keyword}
                           </span>
                         )
@@ -606,34 +762,52 @@ Example:
 
                 <div className="result-columns">
                   <div className="result-panel">
-                    <span className="result-label">STRENGTHS</span>
+                    <span className="result-label">
+                      STRENGTHS
+                    </span>
 
                     <ul>
-                      {analysis.strengths.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
+                      {analysis.strengths.map(
+                        (item, index) => (
+                          <li key={index}>
+                            {item}
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
 
                   <div className="result-panel">
-                    <span className="result-label">WEAKNESSES</span>
+                    <span className="result-label">
+                      WEAKNESSES
+                    </span>
 
                     <ul>
-                      {analysis.weaknesses.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
+                      {analysis.weaknesses.map(
+                        (item, index) => (
+                          <li key={index}>
+                            {item}
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
                 </div>
 
                 <div className="result-columns">
                   <div className="result-panel">
-                    <span className="result-label">ATS ISSUES</span>
+                    <span className="result-label">
+                      ATS ISSUES
+                    </span>
 
                     <ul>
-                      {analysis.atsIssues.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
+                      {analysis.atsIssues.map(
+                        (item, index) => (
+                          <li key={index}>
+                            {item}
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
 
@@ -643,21 +817,30 @@ Example:
                     </span>
 
                     <ol>
-                      {analysis.suggestions.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
+                      {analysis.suggestions.map(
+                        (item, index) => (
+                          <li key={index}>
+                            {item}
+                          </li>
+                        )
+                      )}
                     </ol>
                   </div>
                 </div>
 
+                {/* IMPROVEMENT */}
                 <div className="improvement-card">
                   <div className="improvement-header">
                     <div>
-                      <p className="eyebrow">MAKE IT BETTER</p>
+                      <p className="eyebrow">
+                        MAKE IT BETTER
+                      </p>
+
                       <h3>Improve my resume</h3>
+
                       <p>
-                        Turn the analysis into practical edits without
-                        inventing experience or achievements.
+                        Turn the analysis into practical edits
+                        without inventing experience or achievements.
                       </p>
                     </div>
 
@@ -669,12 +852,15 @@ Example:
                       {improving
                         ? "Improving..."
                         : "Improve Resume"}
+
                       <span>→</span>
                     </button>
                   </div>
 
                   {improvementError && (
-                    <div className="error-box">{improvementError}</div>
+                    <div className="error-box">
+                      {improvementError}
+                    </div>
                   )}
 
                   {improvement && (
@@ -683,7 +869,10 @@ Example:
                         <span className="result-label">
                           IMPROVED SUMMARY
                         </span>
-                        <p>{improvement.improvedSummary}</p>
+
+                        <p>
+                          {improvement.improvedSummary}
+                        </p>
                       </div>
 
                       <div className="improvement-columns">
@@ -695,7 +884,9 @@ Example:
                           <ol>
                             {improvement.improvedBullets.map(
                               (bullet, index) => (
-                                <li key={index}>{bullet}</li>
+                                <li key={index}>
+                                  {bullet}
+                                </li>
                               )
                             )}
                           </ol>
@@ -729,7 +920,9 @@ Example:
                         <ol>
                           {improvement.actionItems.map(
                             (item, index) => (
-                              <li key={index}>{item}</li>
+                              <li key={index}>
+                                {item}
+                              </li>
                             )
                           )}
                         </ol>
@@ -742,9 +935,15 @@ Example:
           </section>
         )}
 
-        <section className="how-section" id="about">
+        {/* HOW IT WORKS */}
+        <section
+          className="how-section"
+          id="about"
+        >
           <div>
-            <p className="eyebrow">HOW IT WORKS</p>
+            <p className="eyebrow">
+              HOW IT WORKS
+            </p>
 
             <h2>
               Simple input.
@@ -756,13 +955,19 @@ Example:
           <div className="how-grid">
             <div>
               <span>01</span>
+
               <h3>Upload</h3>
-              <p>Your PDF resume is converted into usable text.</p>
+
+              <p>
+                Your PDF resume is converted into usable text.
+              </p>
             </div>
 
             <div>
               <span>02</span>
+
               <h3>Compare</h3>
+
               <p>
                 Gemini evaluates your profile against the target role.
               </p>
@@ -770,7 +975,9 @@ Example:
 
             <div>
               <span>03</span>
+
               <h3>Improve</h3>
+
               <p>
                 Get role fit, ATS signals, skill gaps, and practical
                 next steps.
