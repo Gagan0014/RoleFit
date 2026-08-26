@@ -1,12 +1,5 @@
 :root {
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #24323a;
   background: #ffffff;
   font-synthesis: none;
@@ -17,13 +10,22 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  margin: 0;
-  min-width: 320px;
+  overflow-x: hidden;
   background: #ffffff;
   color: #24323a;
 }
@@ -59,7 +61,7 @@ a {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #e6ece9;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.97);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -131,7 +133,7 @@ a {
   color: #ffffff;
 }
 
-/* HERO - LANDSCAPE */
+/* HERO */
 
 .hero {
   position: relative;
@@ -220,7 +222,7 @@ a {
   line-height: 1.65;
 }
 
-/* COMPACT UPLOAD */
+/* UPLOAD */
 
 .upload-card {
   min-height: 112px;
@@ -233,10 +235,7 @@ a {
   background: rgba(255, 255, 255, 0.74);
   cursor: pointer;
   box-shadow: 0 10px 28px rgba(45, 110, 90, 0.055);
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .upload-card:hover {
@@ -331,11 +330,8 @@ a {
   border: 1px solid #e2e8ef;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.94);
-  box-shadow:
-    0 26px 72px rgba(47, 68, 79, 0.10),
-    0 8px 22px rgba(47, 68, 79, 0.06);
+  box-shadow: 0 26px 72px rgba(47, 68, 79, 0.10), 0 8px 22px rgba(47, 68, 79, 0.06);
   overflow: hidden;
-  transform: translateY(0);
 }
 
 .preview-topbar {
@@ -395,6 +391,10 @@ a {
   background: #ffffff;
 }
 
+.preview-score-card + .preview-score-card {
+  margin-top: 10px;
+}
+
 .mini-label {
   display: block;
   color: #829098;
@@ -433,6 +433,10 @@ a {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #20b888, #f9a44c);
+}
+
+.mini-meter .ats-meter-fill {
+  background: linear-gradient(90deg, #6b63db, #a586ed);
 }
 
 .mini-caption {
@@ -502,17 +506,9 @@ a {
   background: #dfe5ea;
 }
 
-.preview-line.long {
-  width: 94%;
-}
-
-.preview-line.medium {
-  width: 82%;
-}
-
-.preview-line.short {
-  width: 62%;
-}
+.preview-line.long { width: 94%; }
+.preview-line.medium { width: 82%; }
+.preview-line.short { width: 62%; }
 
 .preview-box {
   margin-top: 16px;
@@ -562,50 +558,12 @@ a {
   color: #b86d32;
 }
 
-.preview-chart {
-  margin-top: 16px;
-  padding: 13px;
-  border: 1px solid #e2e8ed;
-  border-radius: 10px;
-  background: #ffffff;
-}
-
-.chart-label {
-  color: #7d8990;
-  font-size: 7px;
-  font-weight: 800;
-  letter-spacing: 0.9px;
-}
-
-.chart {
-  height: 58px;
-  margin-top: 10px;
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.chart-bar {
-  flex: 1;
-  border-radius: 4px 4px 0 0;
-  background: linear-gradient(to top, #79d9ba, #c9f0e2);
-}
-
-.bar-one { height: 34%; }
-.bar-two { height: 55%; }
-.bar-three { height: 44%; }
-.bar-four { height: 78%; }
-.bar-five {
-  height: 92%;
-  background: linear-gradient(to top, #20b888, #b7ecd9);
-}
-
-/* BELOW THE FOLD - WIDE HORIZONTAL FORM */
+/* ANALYZER */
 
 .analyzer-section,
 .results-section,
 .how-section {
-  width: min(1240px, calc(100% - 64px));
+  width: min(1320px, calc(100% - 64px));
   margin: 0 auto;
 }
 
@@ -614,7 +572,7 @@ a {
 }
 
 .section-heading {
-  max-width: 760px;
+  max-width: 780px;
   margin-bottom: 24px;
 }
 
@@ -726,9 +684,7 @@ a {
   color: #ffffff;
   font-size: 11px;
   font-weight: 800;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .analyze-button:hover:not(:disabled) {
@@ -776,22 +732,24 @@ a {
   font-weight: 800;
 }
 
-.results-layout {
+.score-overview {
   display: grid;
-  grid-template-columns: 230px 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
+  margin-bottom: 18px;
 }
 
-.result-score-card,
-.result-panel {
+.score-overview-card {
+  padding: 24px;
   border: 1px solid #e0e8e5;
-  border-radius: 13px;
+  border-radius: 14px;
   background: #ffffff;
+  min-height: 190px;
 }
 
-.result-score-card {
-  align-self: start;
-  padding: 22px;
+.score-overview-card.ats-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fbf9ff 100%);
+  border-color: #e4dff3;
 }
 
 .result-label {
@@ -802,26 +760,27 @@ a {
   letter-spacing: 1.2px;
 }
 
-.result-score-card strong {
-  display: inline-block;
-  margin-top: 9px;
+.big-score {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.big-score strong {
   color: #20b888;
   font-size: 52px;
   line-height: 1;
   letter-spacing: -3px;
 }
 
-.result-denom {
-  margin-left: 4px;
-  color: #9eaaa9;
-  font-size: 10px;
+.ats-card .big-score strong {
+  color: #6b63db;
 }
 
-.result-score-card p {
-  margin: 16px 0 0;
-  color: #6f7f84;
+.big-score span {
+  color: #9eaaa9;
   font-size: 11px;
-  line-height: 1.65;
 }
 
 .result-meter {
@@ -838,6 +797,27 @@ a {
   background: linear-gradient(90deg, #20b888, #f9a44c);
 }
 
+.ats-result-meter {
+  background: #ece9f5;
+}
+
+.ats-result-meter div {
+  background: linear-gradient(90deg, #6b63db, #a586ed);
+}
+
+.score-overview-card p {
+  margin: 14px 0 0;
+  color: #6f7f84;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.results-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
 .result-main {
   display: flex;
   flex-direction: column;
@@ -852,6 +832,9 @@ a {
 
 .result-panel {
   padding: 20px;
+  border: 1px solid #e0e8e5;
+  border-radius: 13px;
+  background: #ffffff;
 }
 
 .result-panel > p {
@@ -963,7 +946,7 @@ a {
   font-weight: 800;
 }
 
-/* TABLET */
+/* RESPONSIVE */
 
 @media (max-width: 1050px) {
   .nav-links {
@@ -993,8 +976,6 @@ a {
     gap: 30px;
   }
 }
-
-/* MOBILE */
 
 @media (max-width: 760px) {
   .navbar {
@@ -1040,13 +1021,14 @@ a {
   }
 
   .results-layout,
+  .score-overview,
   .result-columns,
   .how-grid {
     grid-template-columns: 1fr;
   }
 
-  .result-score-card {
-    max-width: none;
+  .score-overview-card {
+    min-height: auto;
   }
 }
 

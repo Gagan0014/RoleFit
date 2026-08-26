@@ -106,6 +106,7 @@ function App() {
 
   return (
     <div className="app">
+      {/* NAVBAR */}
       <header className="navbar">
         <a className="brand" href="/">
           <span className="brand-icon">R</span>
@@ -124,6 +125,7 @@ function App() {
         </div>
       </header>
 
+      {/* HERO */}
       <main>
         <section className="hero" id="analyze">
           <div className="hero-glow glow-one"></div>
@@ -142,7 +144,8 @@ function App() {
 
               <p className="hero-description">
                 Compare your resume with a target job and get a clear view
-                of your strengths, skill gaps, and overall role fit.
+                of your strengths, skill gaps, ATS readiness, and overall
+                role fit.
               </p>
 
               <label className={`upload-card ${file ? "uploaded" : ""}`}>
@@ -155,19 +158,26 @@ function App() {
                 {file ? (
                   <>
                     <div className="upload-file-icon">PDF</div>
+
                     <div className="upload-content">
                       <strong>{file.name}</strong>
                       <span>Ready to analyze · PDF</span>
                     </div>
+
                     <div className="upload-change">Change</div>
                   </>
                 ) : (
                   <>
                     <div className="upload-icon">↑</div>
+
                     <div className="upload-content">
-                      <strong>Drop your resume here or choose a file</strong>
+                      <strong>
+                        Drop your resume here or choose a file
+                      </strong>
+
                       <span>PDF only · Maximum 5 MB</span>
                     </div>
+
                     <div className="upload-button">Choose file</div>
                   </>
                 )}
@@ -179,6 +189,7 @@ function App() {
               </p>
             </div>
 
+            {/* PRODUCT PREVIEW */}
             <div className="preview-wrap">
               <div className="preview-window">
                 <div className="preview-topbar">
@@ -186,7 +197,10 @@ function App() {
                     <span className="preview-mark">R</span>
                     RoleFit
                   </div>
-                  <span className="preview-status">Analysis preview</span>
+
+                  <span className="preview-status">
+                    Analysis preview
+                  </span>
                 </div>
 
                 <div className="preview-body">
@@ -195,7 +209,9 @@ function App() {
                       <span className="mini-label">ROLE FIT</span>
 
                       <div className="mini-score">
-                        <strong>{analysis?.roleFitScore ?? 84}</strong>
+                        <strong>
+                          {analysis?.roleFitScore ?? 84}
+                        </strong>
                         <span>/100</span>
                       </div>
 
@@ -203,7 +219,10 @@ function App() {
                         <div
                           style={{
                             width: `${Math.min(
-                              Math.max(analysis?.roleFitScore ?? 84, 0),
+                              Math.max(
+                                analysis?.roleFitScore ?? 84,
+                                0
+                              ),
                               100
                             )}%`,
                           }}
@@ -215,6 +234,36 @@ function App() {
                       </span>
                     </div>
 
+                    <div className="preview-score-card">
+                      <span className="mini-label">ATS SCORE</span>
+
+                      <div className="mini-score">
+                        <strong>
+                          {analysis?.atsScore ?? 78}
+                        </strong>
+                        <span>/100</span>
+                      </div>
+
+                      <div className="mini-meter">
+                        <div
+                          className="ats-meter-fill"
+                          style={{
+                            width: `${Math.min(
+                              Math.max(
+                                analysis?.atsScore ?? 78,
+                                0
+                              ),
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+
+                      <span className="mini-caption">
+                        Keyword & resume readiness
+                      </span>
+                    </div>
+
                     <div className="preview-list">
                       <span className="mini-label">KEY SIGNALS</span>
 
@@ -222,17 +271,20 @@ function App() {
                         <span>✓</span>
                         Matched skills
                       </div>
+
                       <div className="preview-list-item positive">
                         <span>✓</span>
-                        Relevant projects
+                        Relevant experience
                       </div>
+
                       <div className="preview-list-item warning">
                         <span>+</span>
                         Skill gaps
                       </div>
+
                       <div className="preview-list-item neutral">
                         <span>•</span>
-                        Suggestions
+                        ATS issues
                       </div>
                     </div>
                   </aside>
@@ -250,6 +302,7 @@ function App() {
                     <div className="preview-box">
                       <div className="preview-box-header">
                         <span>SKILL MATCH</span>
+
                         <strong>
                           {analysis
                             ? `${analysis.matchedSkills.length} matched`
@@ -258,11 +311,13 @@ function App() {
                       </div>
 
                       <div className="preview-tags">
-                        {(analysis?.matchedSkills?.slice(0, 4) || [
-                          "React",
-                          "Node.js",
-                          "MongoDB",
-                        ]).map((skill, index) => (
+                        {(
+                          analysis?.matchedSkills?.slice(0, 4) || [
+                            "React",
+                            "Node.js",
+                            "MongoDB",
+                          ]
+                        ).map((skill, index) => (
                           <span className="preview-tag" key={index}>
                             ✓ {skill}
                           </span>
@@ -273,6 +328,7 @@ function App() {
                     <div className="preview-box">
                       <div className="preview-box-header">
                         <span>SKILL GAPS</span>
+
                         <strong className="orange-text">
                           {analysis
                             ? `${analysis.missingSkills.length} to improve`
@@ -281,10 +337,12 @@ function App() {
                       </div>
 
                       <div className="preview-tags">
-                        {(analysis?.missingSkills?.slice(0, 3) || [
-                          "AWS",
-                          "Docker",
-                        ]).map((skill, index) => (
+                        {(
+                          analysis?.missingSkills?.slice(0, 3) || [
+                            "AWS",
+                            "Docker",
+                          ]
+                        ).map((skill, index) => (
                           <span
                             className="preview-tag missing"
                             key={index}
@@ -294,17 +352,6 @@ function App() {
                         ))}
                       </div>
                     </div>
-
-                    <div className="preview-chart">
-                      <span className="chart-label">FIT SIGNAL</span>
-                      <div className="chart">
-                        <div className="chart-bar bar-one"></div>
-                        <div className="chart-bar bar-two"></div>
-                        <div className="chart-bar bar-three"></div>
-                        <div className="chart-bar bar-four"></div>
-                        <div className="chart-bar bar-five"></div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -312,12 +359,19 @@ function App() {
           </div>
         </section>
 
+        {/* JOB DESCRIPTION */}
         <section className="analyzer-section" id="how-it-works">
           <div className="section-heading">
             <p className="eyebrow">START ANALYZING</p>
-            <h2>Tell RoleFit what you're applying for.</h2>
+
+            <h2>
+              Tell RoleFit what
+              <br />
+              you're applying for.
+            </h2>
+
             <p>
-              Add the job description, then let RoleFit compare it with your
+              Add the job description and let RoleFit compare it with your
               resume.
             </p>
           </div>
@@ -351,7 +405,7 @@ Example:
 
             <div className="job-card-footer">
               <span className="helper-text">
-                The more complete the job description, the better the match.
+                A complete job description gives more accurate results.
               </span>
 
               <button
@@ -368,28 +422,38 @@ Example:
           </div>
         </section>
 
+        {/* RESULTS */}
         {analysis && (
           <section className="results-section" id="results">
             <div className="results-heading">
               <div>
                 <p className="eyebrow">YOUR RESULT</p>
+
                 <h2>RoleFit analysis</h2>
+
                 <p>
-                  A quick, practical breakdown of where you match and where
-                  you can improve.
+                  Your role match and ATS readiness at a glance.
                 </p>
               </div>
 
-              <button className="secondary-button" onClick={resetAnalysis}>
+              <button
+                className="secondary-button"
+                onClick={resetAnalysis}
+              >
                 Analyze another resume
               </button>
             </div>
 
-            <div className="results-layout">
-              <div className="result-score-card">
-                <span className="result-label">ROLE FIT</span>
-                <strong>{analysis.roleFitScore}</strong>
-                <span className="result-denom">/100</span>
+            <div className="score-overview">
+              <div className="score-overview-card">
+                <span className="result-label">
+                  ROLE FIT
+                </span>
+
+                <div className="big-score">
+                  <strong>{analysis.roleFitScore}</strong>
+                  <span>/100</span>
+                </div>
 
                 <div className="result-meter">
                   <div
@@ -405,94 +469,227 @@ Example:
                 <p>{analysis.roleAnalysis}</p>
               </div>
 
+              <div className="score-overview-card ats-card">
+                <span className="result-label">
+                  ATS SCORE
+                </span>
+
+                <div className="big-score">
+                  <strong>{analysis.atsScore}</strong>
+                  <span>/100</span>
+                </div>
+
+                <div className="result-meter ats-result-meter">
+                  <div
+                    style={{
+                      width: `${Math.min(
+                        Math.max(analysis.atsScore, 0),
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+
+                <p>{analysis.atsAnalysis}</p>
+              </div>
+            </div>
+
+            <div className="results-layout">
               <div className="result-main">
                 <div className="result-columns">
                   <div className="result-panel">
-                    <span className="result-label">MATCHED SKILLS</span>
+                    <span className="result-label">
+                      MATCHED SKILLS
+                    </span>
 
                     <div className="result-tags">
-                      {analysis.matchedSkills.map((skill, index) => (
-                        <span className="result-tag matched" key={index}>
-                          ✓ {skill}
-                        </span>
-                      ))}
+                      {analysis.matchedSkills.map(
+                        (skill, index) => (
+                          <span
+                            className="result-tag matched"
+                            key={index}
+                          >
+                            ✓ {skill}
+                          </span>
+                        )
+                      )}
                     </div>
                   </div>
 
                   <div className="result-panel">
-                    <span className="result-label">SKILL GAPS</span>
+                    <span className="result-label">
+                      SKILL GAPS
+                    </span>
 
                     <div className="result-tags">
-                      {analysis.missingSkills.map((skill, index) => (
-                        <span className="result-tag missing" key={index}>
-                          + {skill}
-                        </span>
-                      ))}
+                      {analysis.missingSkills.map(
+                        (skill, index) => (
+                          <span
+                            className="result-tag missing"
+                            key={index}
+                          >
+                            + {skill}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="result-columns">
+                  <div className="result-panel">
+                    <span className="result-label">
+                      ATS KEYWORDS FOUND
+                    </span>
+
+                    <div className="result-tags">
+                      {analysis.atsKeywordsFound.map(
+                        (keyword, index) => (
+                          <span
+                            className="result-tag matched"
+                            key={index}
+                          >
+                            ✓ {keyword}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="result-panel">
+                    <span className="result-label">
+                      ATS KEYWORDS MISSING
+                    </span>
+
+                    <div className="result-tags">
+                      {analysis.atsKeywordsMissing.map(
+                        (keyword, index) => (
+                          <span
+                            className="result-tag missing"
+                            key={index}
+                          >
+                            + {keyword}
+                          </span>
+                        )
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="result-panel wide">
-                  <span className="result-label">SUMMARY</span>
+                  <span className="result-label">
+                    RESUME SUMMARY
+                  </span>
+
                   <p>{analysis.summary}</p>
                 </div>
 
                 <div className="result-columns">
                   <div className="result-panel">
-                    <span className="result-label">STRENGTHS</span>
+                    <span className="result-label">
+                      STRENGTHS
+                    </span>
+
                     <ul>
-                      {analysis.strengths.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
+                      {analysis.strengths.map(
+                        (item, index) => (
+                          <li key={index}>{item}</li>
+                        )
+                      )}
                     </ul>
                   </div>
 
                   <div className="result-panel">
-                    <span className="result-label">WEAKNESSES</span>
+                    <span className="result-label">
+                      WEAKNESSES
+                    </span>
+
                     <ul>
-                      {analysis.weaknesses.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
+                      {analysis.weaknesses.map(
+                        (item, index) => (
+                          <li key={index}>{item}</li>
+                        )
+                      )}
                     </ul>
                   </div>
                 </div>
 
-                <div className="result-panel wide">
-                  <span className="result-label">RECOMMENDATIONS</span>
-                  <ol>
-                    {analysis.suggestions.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ol>
+                <div className="result-columns">
+                  <div className="result-panel">
+                    <span className="result-label">
+                      ATS ISSUES
+                    </span>
+
+                    <ul>
+                      {analysis.atsIssues.map(
+                        (item, index) => (
+                          <li key={index}>{item}</li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+
+                  <div className="result-panel">
+                    <span className="result-label">
+                      RECOMMENDATIONS
+                    </span>
+
+                    <ol>
+                      {analysis.suggestions.map(
+                        (item, index) => (
+                          <li key={index}>{item}</li>
+                        )
+                      )}
+                    </ol>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
         )}
 
+        {/* HOW IT WORKS */}
         <section className="how-section" id="about">
           <div>
             <p className="eyebrow">HOW IT WORKS</p>
-            <h2>Simple input.<br />Useful output.</h2>
+
+            <h2>
+              Simple input.
+              <br />
+              Useful output.
+            </h2>
           </div>
 
           <div className="how-grid">
             <div>
               <span>01</span>
+
               <h3>Upload</h3>
-              <p>Your PDF resume is converted into usable text.</p>
+
+              <p>
+                Your PDF resume is converted into usable text.
+              </p>
             </div>
 
             <div>
               <span>02</span>
+
               <h3>Compare</h3>
-              <p>Gemini evaluates your profile against the target role.</p>
+
+              <p>
+                Gemini evaluates your profile against the target role.
+              </p>
             </div>
 
             <div>
               <span>03</span>
+
               <h3>Improve</h3>
-              <p>Get clear skill gaps and practical next steps.</p>
+
+              <p>
+                Get role fit, ATS signals, skill gaps, and practical
+                next steps.
+              </p>
             </div>
           </div>
         </section>

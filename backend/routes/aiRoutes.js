@@ -13,34 +13,54 @@ router.post("/analyze", async (req, res) => {
       });
     }
 
+    if (!jobDescription || !jobDescription.trim()) {
+      return res.status(400).json({
+        message: "Job description is required",
+      });
+    }
+
     const prompt = `
-You are an expert recruiter and resume analyst.
+You are an expert recruiter, ATS resume evaluator, and career coach.
 
-Analyze the candidate's resume.
+Analyze the candidate's resume against the target job description.
 
-${jobDescription
-  ? `
-Also compare the resume against the following job description.
+You must produce TWO separate scores:
 
-JOB DESCRIPTION:
-${jobDescription}
-`
-  : ""
-}
+1. roleFitScore:
+   Measures how well the candidate matches the actual role.
+   Consider:
+   - Skills
+   - Technical requirements
+   - Experience
+   - Projects
+   - Education
+   - Overall relevance
 
-Rules:
+2. atsScore:
+   Measures how well the resume is optimized for an Applicant Tracking System for this specific job.
+   Consider:
+   - Important job-description keywords present in the resume
+   - Relevant technical skills
+   - Clear standard resume sections
+   - Specific and searchable terminology
+   - Missing important keywords
+   - Content clarity and consistency
+   - Potential ATS weaknesses visible from the extracted text
+
+Important rules:
 - Only use information actually present in the resume and job description.
-- Do not invent qualifications or experience.
-- Keep array items concise.
-- Be objective and specific.
-- If a job description is provided, identify matched and missing skills.
-- Calculate a role fit score from 0 to 100 based on skills, experience, projects, and overall relevance.
-- Give practical suggestions.
-
-Return the analysis as structured JSON.
+- Never invent skills, experience, projects, education, or certifications.
+- Do not give a high ATS score just because the resume is well written.
+- Do not give a high role-fit score simply because keywords match.
+- Keep arrays concise and useful.
+- Scores must be integers from 0 to 100.
+- Be objective and practical.
 
 RESUME:
 ${resumeText}
+
+JOB DESCRIPTION:
+${jobDescription}
 `;
 
     const response = await ai.models.generateContent({
@@ -54,7 +74,23 @@ ${resumeText}
           type: "object",
 
           properties: {
+            roleFitScore: {
+              type: "number",
+            },
+
+            atsScore: {
+              type: "number",
+            },
+
             summary: {
+              type: "string",
+            },
+
+            roleAnalysis: {
+              type: "string",
+            },
+
+            atsAnalysis: {
               type: "string",
             },
 
@@ -93,6 +129,34 @@ ${resumeText}
               },
             },
 
+            matchedSkills: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+
+            missingSkills: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+
+            atsKeywordsFound: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+
+            atsKeywordsMissing: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+
             strengths: {
               type: "array",
               items: {
@@ -114,49 +178,50 @@ ${resumeText}
               },
             },
 
-            roleFitScore: {
-              type: "number",
-            },
-
-            matchedSkills: {
+            atsIssues: {
               type: "array",
               items: {
                 type: "string",
               },
-            },
-
-            missingSkills: {
-              type: "array",
-              items: {
-                type: "string",
-              },
-            },
-
-            roleAnalysis: {
-              type: "string",
             },
           },
 
           required: [
+            "roleFitScore",
+            "atsScore",
             "summary",
+            "roleAnalysis",
+            "atsAnalysis",
             "skills",
             "education",
             "experience",
             "projects",
             "certifications",
+            "matchedSkills",
+            "missingSkills",
+            "atsKeywordsFound",
+            "atsKeywordsMissing",
             "strengths",
             "weaknesses",
             "suggestions",
-            "roleFitScore",
-            "matchedSkills",
-            "missingSkills",
-            "roleAnalysis",
+            "atsIssues",
           ],
         },
       },
     });
 
     const analysis = JSON.parse(response.text);
+
+    // Keep scores safely inside the expected range.
+    analysis.roleFitScore = Math.min(
+      Math.max(Math.round(analysis.roleFitScore), 0),
+      100
+    );
+
+    analysis.atsScore = Math.min(
+      Math.max(Math.round(analysis.atsScore), 0),
+      100
+    );
 
     res.status(200).json({
       message: "Resume analyzed successfully",
