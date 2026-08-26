@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post("/analyze", async (req, res) => {
   try {
-    const { resumeText } = req.body;
+    const { resumeText, jobDescription } = req.body;
 
     if (!resumeText || !resumeText.trim()) {
       return res.status(400).json({
@@ -14,18 +14,32 @@ router.post("/analyze", async (req, res) => {
     }
 
     const prompt = `
-You are an expert resume reviewer.
+You are an expert recruiter and resume analyst.
 
-Analyze the resume below.
+Analyze the candidate's resume.
+
+${jobDescription
+  ? `
+Also compare the resume against the following job description.
+
+JOB DESCRIPTION:
+${jobDescription}
+`
+  : ""
+}
 
 Rules:
-- Only use information actually present in the resume.
-- Do not invent information.
-- Keep every array item concise.
-- Identify genuine strengths and weaknesses.
-- Give practical suggestions for improving the resume.
+- Only use information actually present in the resume and job description.
+- Do not invent qualifications or experience.
+- Keep array items concise.
+- Be objective and specific.
+- If a job description is provided, identify matched and missing skills.
+- Calculate a role fit score from 0 to 100 based on skills, experience, projects, and overall relevance.
+- Give practical suggestions.
 
-Resume:
+Return the analysis as structured JSON.
+
+RESUME:
 ${resumeText}
 `;
 
@@ -99,6 +113,28 @@ ${resumeText}
                 type: "string",
               },
             },
+
+            roleFitScore: {
+              type: "number",
+            },
+
+            matchedSkills: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+
+            missingSkills: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+
+            roleAnalysis: {
+              type: "string",
+            },
           },
 
           required: [
@@ -111,6 +147,10 @@ ${resumeText}
             "strengths",
             "weaknesses",
             "suggestions",
+            "roleFitScore",
+            "matchedSkills",
+            "missingSkills",
+            "roleAnalysis",
           ],
         },
       },
