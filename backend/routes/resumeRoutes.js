@@ -28,6 +28,7 @@ const upload = multer({
 router.post(
   "/upload",
   (req, res, next) => {
+    console.log("resume uploaded route hit")
     upload.single("resume")(req, res, (error) => {
       if (error instanceof multer.MulterError) {
         if (error.code === "LIMIT_FILE_SIZE") {
