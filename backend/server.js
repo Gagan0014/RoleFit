@@ -23,6 +23,10 @@ app.use(
 );
 
 app.use(express.json({ limit: "1mb" }));
+app.use((req, res, next) => {
+  console.log("REQUEST:", req.method, req.originalUrl);
+  next();
+});
 
 app.use("/api/resume", resumeRoutes);
 app.use("/api/ai", aiRoutes);
